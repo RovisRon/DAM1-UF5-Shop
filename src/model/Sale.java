@@ -1,34 +1,31 @@
 package model;
 
-import java.awt.event.MouseAdapter;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.logging.Formatter;
 
 public class Sale {
-	//client be Client type
-	private Client client;
-	private ArrayList<Product> products;
+	private String client;
+	//private Product[] products;
+	private ArrayList<Product> products = new ArrayList<Product>();
 	private Amount amount;
 	private LocalDateTime date;
 	
-	public Sale(Client client, ArrayList<Product> products, Amount amount, LocalDateTime date) {
+	public Sale(String client, ArrayList<Product> products, Amount amount) {
 		super();
 		this.client = client;
 		this.products = products;
 		this.amount = amount;
-		this.date = date;
+		this.date = LocalDateTime.now();
 	}
-
-	public Client getClient() {
+	
+	public String getClient() {
 		return client;
 	}
-
-	public void setClient(Client client) {
+	public void setClient(String client) {
 		this.client = client;
-	}
+	}		
 
 	public ArrayList<Product> getProducts() {
 		return products;
@@ -38,14 +35,6 @@ public class Sale {
 		this.products = products;
 	}
 
-	public Amount getAmount() {
-		return amount;
-	}
-
-	public void setAmount(Amount amount) {
-		this.amount = amount;
-	}
-	
 	public LocalDateTime getDate() {
 		return date;
 	}
@@ -54,14 +43,28 @@ public class Sale {
 		this.date = date;
 	}
 
-	@Override
-	public String toString() {	
-		DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("dd-MM-yyy HH:mm:ss");
-		String formattedDate = date.format(myFormatObj);
-		
-		return "Sale [client=" + client + ", products="+ products.toString() 
-		+", amount=" + amount + Amount.getCurrency() 
-		+ " Date:"+ formattedDate +"]";
+	public Amount getAmount() {
+		return amount;
 	}
+
+	public void setAmount(Amount amount) {
+		this.amount = amount;
+	}
+
+	@Override
+	public String toString() {
+		String formattedDate = formatDate();
+		return "Sale [client=" + client.toUpperCase() + ", products=" + products.toString() + ", amount=" + amount + ",date=" + formattedDate + "]";
+	}
+
+	public String formatDate() {		
+	    DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+	    String formattedDate = date.format(myFormatObj);
+		return formattedDate;
+	}
+	
+	
+	
+	
 
 }

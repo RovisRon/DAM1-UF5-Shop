@@ -1,84 +1,72 @@
 package view;
 
-import main.Shop;
-import model.Amount;
+import java.awt.BorderLayout;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+
+import main.Shop;
+
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 public class CashView extends JDialog {
-    private JPanel contentPane;
-    private JButton buttonOK;
-    private JButton buttonCancel;
-    private JTextField cashUser;
 
-    public CashView() {
-        Shop shop = new Shop();
-        Amount cash = shop.cash;
-        String cashExtract = cash.toString();
+	private static final long serialVersionUID = 1L;
+	private final JPanel contentPanel = new JPanel();
+	private JTextField txt_Caixa;
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		try {
+			Shop shop = new Shop();
+			CashView dialog = new CashView(shop);
+			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+			dialog.setVisible(true);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-        cashUser.setFocusable(false);
-
-        Pattern pattern = Pattern.compile("Amount \\[value=(\\d+\\.?\\d*)€\\]");
-        Matcher matcher = pattern.matcher(cashExtract);
-
-        if (matcher.find()) {
-            String amount = matcher.group(1);
-            String value = "€";
-            cashUser.setText(amount + value);
-        } else {
-            cashUser.setText("");
-        }
-
-        setContentPane(contentPane);
-        setTitle("Caja");
-        setSize(new Dimension(450, 200));
-        setLocationRelativeTo(null);
-        setModal(true);
-        getRootPane().setDefaultButton(buttonOK);
-
-        buttonOK.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onOK();
-            }
-        });
-
-        buttonCancel.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onCancel();
-            }
-        });
-
-        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
-                onCancel();
-            }
-        });
-
-        contentPane.registerKeyboardAction(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onCancel();
-            }
-        }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-    }
-
-    private void onOK() {
-        dispose();
-    }
-
-    private void onCancel() {
-        dispose();
-    }
-
-    public static void main(String[] args) {
-        CashView dialog = new CashView();
-        dialog.pack();
-        dialog.setVisible(true);
-        System.exit(0);
-    }
-
+	/**
+	 * Create the dialog.
+	 */
+	public CashView(Shop shop) {
+		setTitle("Caixa");
+		setBounds(100, 100, 300, 150);
+		getContentPane().setLayout(new BorderLayout());
+		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+		getContentPane().add(contentPanel, BorderLayout.CENTER);
+		contentPanel.setLayout(null);
+		{
+			JLabel lblNewLabel = new JLabel("Caixa:");
+			lblNewLabel.setBounds(20, 20, 100, 20);
+			contentPanel.add(lblNewLabel);
+		}
+		txt_Caixa = new JTextField();
+		txt_Caixa.setBounds(140, 20, 100, 20);
+		txt_Caixa.setEditable(false);
+		contentPanel.add(txt_Caixa);
+		txt_Caixa.setColumns(10);
+		double valorCash = shop.showCash();
+		String valorCashStr = valorCash + "€";
+		txt_Caixa.setText(valorCashStr);
+		{
+			JButton btn_ok = new JButton("OK");
+			btn_ok.setBounds(140, 60, 100, 20);
+			contentPanel.add(btn_ok);
+			btn_ok.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					CashView.this.setVisible(false);
+				}
+			});
+			btn_ok.setActionCommand("OK");
+			getRootPane().setDefaultButton(btn_ok);
+		}
+	}
 }

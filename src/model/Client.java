@@ -1,23 +1,26 @@
 package model;
 
-public class Client extends Person {
+import main.Payable;
 
-	private int memberld;
-	private Amount balance;
+public class Client extends Person implements Payable{
+
+	int memberID;
+	Amount balance;
 	final static int MEMBER_ID = 456;
-    final static double BALANCE = 50.00;
+	final static Amount BALANCE = new Amount(50.0);
 	
 	public Client(String name) {
 		super(name);
-		this.balance = new Amount(BALANCE);
+		this.memberID = MEMBER_ID;
+		this.balance = BALANCE;
 	}
 
-	public int getMemberld() {
-		return memberld;
+	public int getMemberID() {
+		return memberID;
 	}
 
-	public void setMemberld(int memberld) {
-		this.memberld = memberld;
+	public void setMemberID(int memberID) {
+		this.memberID = memberID;
 	}
 
 	public Amount getBalance() {
@@ -28,16 +31,13 @@ public class Client extends Person {
 		this.balance = balance;
 	}
 
-	public boolean pay(Amount saleAmount) {
-
-		balance.setValue(balance.getValue() - saleAmount.getValue());
-		if(balance.getValue() <= 0) {
-			System.out.println("Balance necesary to pay: "+balance);
-			return false;
-		}else {
-			System.out.println("Sale was paid, Cliend balance: "+balance);
-			return true;
-		}
-	}
-	
+	@Override
+    public boolean pay(Amount amount) {
+        double finalBalance = balance.getValue() - amount.getValue();
+        boolean canPay = false;
+        if(finalBalance > 0) {
+        	canPay = true;
+        }
+        return canPay;
+    }
 }

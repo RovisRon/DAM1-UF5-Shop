@@ -1,35 +1,30 @@
 package model;
 
-public class Employee extends Person {
+import main.Logable;
 
-	private int employeeId;
+public class Employee extends Person implements Logable{
 	
+	int employeeID;
 	final static int USER = 123;
-    final static String PASSWORD = "test";
-
-	public Employee(String name, int employeeId) {
-		super(name);
-		this.employeeId = employeeId;
-	}
-
-	public int getEmployeeId() {
-		return employeeId;
-	}
-
-	public void setEmployeeId(int employeeId) {
-		this.employeeId = employeeId;
-	}
-
+	final static String PASSWORD = "test";
 	
+	public Employee(String name, int employeeID) {
+		super(name);
+		this.employeeID = employeeID;
+	}
+	public int getUSER() {
+		return USER;
+	}
+	public String getPASSWORD() {
+		return PASSWORD;
+	}
+	@Override
 	public boolean login(int user, String password) {
-    	
+        boolean isLogged = false;
         if (user == USER && password.equals(PASSWORD)) {
-        	System.out.println("User "+user+" logged");
-            return true;
-        } else {
-        	System.out.println("ERROR, wrong dates");
-            return false;
+            isLogged = true;
+            System.out.println("Inici de sessió correcte");
         }
+        return isLogged;
     }
-    
 }

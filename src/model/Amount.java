@@ -1,31 +1,32 @@
 package model;
 
+import java.text.DecimalFormat;
+
 public class Amount {
+	private double value;	
+	private String currency="€";
 	
-	private double value;
-	final static String CURRENCY = "€";
+	private static final DecimalFormat df = new DecimalFormat("0.00");
 	
 	public Amount(double value) {
 		super();
 		this.value = value;
 	}
-	
+
 	public double getValue() {
 		return value;
 	}
+
 	public void setValue(double value) {
 		this.value = value;
-	}
-	
-	public static String getCurrency() {
-		return CURRENCY;
 	}
 
 	@Override
 	public String toString() {
-		return "Amount [value=" + value + CURRENCY + "]";
+		return df.format(value) + currency;
 	}
 	
 	
+
 	
 }

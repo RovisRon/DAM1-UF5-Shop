@@ -1,185 +1,200 @@
 package view;
 
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+
 import main.Shop;
 import model.Product;
+import model.Amount;
 
-import javax.swing.*;
-import java.awt.event.*;
-import java.io.IOException;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 
-public class ProductView extends JDialog {
-    private Shop shop;
-    private JPanel contentPane;
-    private JButton buttonOK;
-    private JButton buttonCancel;
-    private JTextField nameProductTextField;
-    private JTextField stockProductTextField;
-    private JTextField priceProductTextField;
-    private JLabel nameProductLabel;
-    private JLabel stockProductLabel;
-    private JLabel priceProductLabel;
-    int publicOption = 0;
-    private static boolean errorExists = false;
-    private static boolean stockNotExists = false;
-    private static boolean productsNotExists = false;
-    public ProductView() {
-        setContentPane(contentPane);
-        setSize(400, 200);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLocationRelativeTo(null);
+public class ProductView extends JDialog implements ActionListener{
 
-        buttonOK.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onOK();
-            }
-        });
+	private static final long serialVersionUID = 1L;
+	private final JPanel contentPanel = new JPanel();
+	private JTextField txt_NomProducte;
+	private JTextField txt_Stock;
+	private JTextField txt_Preu;
+	private static int opcion;
+	private ArrayList<Product> inventory;
 
-        buttonCancel.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onCancel();
-            }
-        });
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		try {
+			Shop shop = new Shop();
+			ProductView dialog = new ProductView(shop, opcion);
+			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+			dialog.setVisible(true);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-        // call onCancel() when cross is clicked
-        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
-                onCancel();
-            }
-        });
+	/**
+	 * Create the dialog.
+	 */
+	public ProductView(Shop shop, int opcion) {
+		setTitle("Afegir Producte");
+		setBounds(100, 100, 400, 250);
+		getContentPane().setLayout(new BorderLayout());
+		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+		getContentPane().add(contentPanel, BorderLayout.CENTER);
+		contentPanel.setLayout(null);
 
-        }
+		JLabel lbl_NomProducte = new JLabel("Nom del producte: ");
+		lbl_NomProducte.setBounds(20, 20, 150, 20);
+		contentPanel.add(lbl_NomProducte);
 
+		JLabel lbl_Stock = new JLabel("Stock:");
+		lbl_Stock.setBounds(20, 60, 150, 20);
+		contentPanel.add(lbl_Stock);
 
+		JLabel lbl_Preu = new JLabel("Preu:");
+		lbl_Preu.setBounds(20, 100, 150, 20);
+		contentPanel.add(lbl_Preu);
 
-    public void openProductView(int opcion, Shop shop) {
-        this.shop = shop;
-        // Establecer el título aquí
-        switch (opcion) {
-            case 2:
-                setTitle("Add Product");
-                break;
-            case 3:
-                setTitle("Add Stock");
-                priceProductTextField.setVisible(false);
-                priceProductLabel.setVisible(false);
-                setSize(400, 150);
-                break;
-            case 4:
-                setTitle("Delete Product");
-                stockProductTextField.setVisible(false);
-                stockProductLabel.setVisible(false);
-                priceProductTextField.setVisible(false);
-                priceProductLabel.setVisible(false);
-                setSize(400, 120);
-                break;
-            default:
-                System.out.println("Opcion no valida");
-        }
-        setVisible(true);
-        reciveData(opcion);
-    }
+		txt_NomProducte = new JTextField();
+		txt_NomProducte.setBounds(200, 20, 140, 20);
+		contentPanel.add(txt_NomProducte);
+		txt_NomProducte.setColumns(10);
 
+		txt_Stock = new JTextField();
+		txt_Stock.setBounds(200, 60, 140, 20);
+		contentPanel.add(txt_Stock);
+		txt_Stock.setColumns(10);
 
-    private void reciveData(int opcion) {
-        this.publicOption = opcion;
-        System.out.println(publicOption);
-    }
+		txt_Preu = new JTextField();
+		txt_Preu.setBounds(200, 100, 140, 20);
+		contentPanel.add(txt_Preu);
+		txt_Preu.setColumns(10);
+		switch(opcion) {
+		case 3:
+			setTitle("Afegir Stock");
+			lbl_Preu.setVisible(false);
+			txt_Preu.setVisible(false);
+			break;
+		case 9:
+			setTitle("Eliminar Producte");
+			lbl_Preu.setVisible(false);
+			txt_Preu.setVisible(false);
+			lbl_Stock.setVisible(false);
+			txt_Stock.setVisible(false);
+			break;
+		}		
+		{
+			JPanel buttonPane = new JPanel();
+			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
+			getContentPane().add(buttonPane, BorderLayout.SOUTH);
+			{
+				JButton btn_ok = new JButton("OK");
+				btn_ok.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						switch(opcion) {
+						case 2:
+							String name = txt_NomProducte.getText();
+							String stocktext = txt_Stock.getText();
+							Amount wholesalerPrice = new Amount(Double.parseDouble(txt_Preu.getText()));
+							int stock = Integer.parseInt(stocktext);
+							boolean productoExistente = false;
+							for (Product product : shop.inventory) {
+							    if (product.getName().equalsIgnoreCase(name)) {
+							    	JOptionPane.showMessageDialog(null, "ERROR: Aquest producte ja existeix", "Error", JOptionPane.ERROR_MESSAGE);
+							    	productoExistente = true;
+							        break; 
+							    }
+							}
+							if (!productoExistente) {
+								addProduct(new Product(name, wholesalerPrice, true, stock));
+							    JOptionPane.showMessageDialog(null, "Producte afegit con èxit!", "Afegir Producte", JOptionPane.INFORMATION_MESSAGE);
+							    for (Product product : shop.inventory) {
+									if (product != null) {
+										System.out.println("Nom: "+product.getName()+" // Id: "+product.getId()+" // Preu Proveedor Unitat: "+product.getWholesalerPrice()
+										+" // Preu Venta Client Unitat: "+product.getPublicPrice()+" // Stock: "+product.getStock()+" // isAvailable: "+product.isAvailable());
+									}
+								}
+							    ProductView.this.setVisible(false);
+							}
+							break;
+						case 3:
+							name = txt_NomProducte.getText();
+							stocktext = txt_Stock.getText();
+							stock = Integer.parseInt(stocktext);
+							Product product = shop.findProduct(name);
 
-    public void setExeption(boolean exTrue) {
-        errorExists = exTrue;
-    }
+							if (product != null) {
+								product.setStock((product.getStock() + stock));
+								if (product.getStock() > 0) {
+					                product.setAvailable(true);
+					            }
+								JOptionPane.showMessageDialog(null, "El stock del producte " + name + " s'ha actualitzat a " + product.getStock(), "Afegir Stock", JOptionPane.INFORMATION_MESSAGE);
+							} else {
+								JOptionPane.showMessageDialog(null, "ERROR: No s'ha trobat el producte " + name, "Error", JOptionPane.ERROR_MESSAGE);
+							}
+							break;
+						case 9:
+							productoExistente = false;
+							name = txt_NomProducte.getText();
+							boolean existe = false;
+							for (int i = 0; i < shop.inventory.size(); i++) {
+								Product product2 = shop.inventory.get(i);
+								if (product2 != null) {
+									if (product2.getName().equalsIgnoreCase(name)) {
+										shop.inventory.remove(i);
+										existe = true;
+										JOptionPane.showMessageDialog(null, "El producte " + name + " s'ha eliminat amb èxit ", "Eliminar producte", JOptionPane.INFORMATION_MESSAGE);
+										for (Product product3 : shop.inventory) {
+									    	System.out.println("Nombre: "+product3.getName()+" // Id: "+product3.getId()+" // Preu Proveedor Unitat: "+product3.getWholesalerPrice()
+											+" // Preu Venta Client Unitat: "+product3.getPublicPrice()+" // Stock: "+product3.getStock()+" // isAvailable: "+product3.isAvailable());
+									    }
+										break;
+									}
+								}
+							}
+							if (!existe) {
+								JOptionPane.showMessageDialog(null, "ERROR: No s'ha trobat el producte " + name, "Error", JOptionPane.ERROR_MESSAGE);
+							}
+							break;
+						}
+					}
 
-    public void setExeptionProductNotFound (boolean extTrue) {
-        stockNotExists = extTrue;
-    }
+					private void addProduct(Product product) {
+						inventory.add(product);
+						
+					}
+				});
+				btn_ok.setActionCommand("OK");
+				buttonPane.add(btn_ok);
+				getRootPane().setDefaultButton(btn_ok);
+			}
+			{
+				JButton btn_cancelar = new JButton("Cancel·lar");
+				btn_cancelar.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						ProductView.this.setVisible(false);
+					}
+				});
+				btn_cancelar.setActionCommand("Cancel·lar");
+				buttonPane.add(btn_cancelar);
+			}
+		}
+	}
 
-    public void productNotExist (boolean extsTrue) {
-        productsNotExists = extsTrue;
-    }
-
-    private void onOK() {
-        String name = nameProductTextField.getText();
-        String priceText = priceProductTextField.getText();
-        String stockText = stockProductTextField.getText();
-
-        // Verificar campos requeridos según la opción seleccionada
-        if ((publicOption == 2 && (name.isEmpty() || priceText.isEmpty() || stockText.isEmpty())) ||
-                (publicOption == 3 && (name.isEmpty() || stockText.isEmpty())) ||
-                (publicOption == 4 && (name.isEmpty()))) {
-            JOptionPane.showMessageDialog(this, "Todos los campos son obligatorios.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        double price = 0.0;
-        int stock = 0;
-        boolean available = true;
-
-        try {
-            // Convertir a double solo si el campo de precio no está vacío y la opción es 2
-            if (!priceText.isEmpty() && publicOption == 2) {
-                price = Double.parseDouble(priceText);
-            }
-            if (!stockText.isEmpty() && publicOption == 3) {
-                stock = Integer.parseInt(stockText);
-            }
-
-            // Convertir siempre el campo de stock a int
-
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Ingrese valores numéricos válidos para el precio y el stock.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        switch (publicOption) {
-            case 2:
-                shop.inventory(name, price, available, stock);
-                if (errorExists) {
-                    JOptionPane.showMessageDialog(this, "El Producto ya existe en el Inventario", "Error", JOptionPane.ERROR_MESSAGE);
-                    errorExists = false;
-                } else {
-                    JOptionPane.showMessageDialog(this, "Producto agregado con éxito al inventario.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                    dispose();
-                }
-                break;
-            case 3:
-                shop.productStock(name, stock);
-                if (stockNotExists) {
-                    JOptionPane.showMessageDialog(this, "Producto no Existe", "Error", JOptionPane.ERROR_MESSAGE);
-                } else {
-                    JOptionPane.showMessageDialog(this, "Stock del producto actualizado con éxito en el inventario.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                    dispose();
-                }
-                break;
-            case 4:
-                shop.delForProductView(name);
-                if (productsNotExists) {
-                    JOptionPane.showMessageDialog(this, "Producto no Existe", "Éxito", JOptionPane.ERROR_MESSAGE);
-                } else {
-                    JOptionPane.showMessageDialog(this, "El Producto Fue Eliminado Con Exito", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                    dispose();
-                }
-                // Lógica para eliminar el producto
-                break;
-            default:
-                System.out.println("Opción no válida");
-        }
-    }
-
-
-
-
-
-    private void onCancel() {
-        // add your code here if necessary
-        dispose();
-    }
-
-    public static void main(String[] args) {
-        ProductView dialog = new ProductView();
-        dialog.pack();
-        System.exit(0);
-        dialog.setVisible(true);
-    }
-
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
 }

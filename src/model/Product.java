@@ -3,21 +3,20 @@ package model;
 public class Product {
 	private int id;
     private String name;
-    private double publicPrice;
-    private double wholesalerPrice;
+    private Amount publicPrice;
+    private Amount wholesalerPrice;
     private boolean available;
     private int stock;
     private static int totalProducts;
-    // add final [CORRECTION]
-    final static double EXPIRATION_RATE=0.60;
     
-	public Product(String name, double wholesalerPrice, boolean available, int stock) {
+    public final static double EXPIRATION_RATE=0.60;
+    
+	public Product(String name, Amount wholesalerPrice, boolean available, int stock) {
 		super();
 		this.id = totalProducts+1;
 		this.name = name;
-		//add the publicPrice [CORRECTION]
-		this.publicPrice = wholesalerPrice * 2;
 		this.wholesalerPrice = wholesalerPrice;
+		this.publicPrice = new Amount(wholesalerPrice.getValue() * 2);
 		this.available = available;
 		this.stock = stock;
 		totalProducts++;
@@ -39,19 +38,21 @@ public class Product {
 		this.name = name;
 	}
 
-	public double getPublicPrice() {
+	
+
+	public Amount getPublicPrice() {
 		return publicPrice;
 	}
 
-	public void setPublicPrice(double publicPrice) {
+	public void setPublicPrice(Amount publicPrice) {
 		this.publicPrice = publicPrice;
 	}
 
-	public double getWholesalerPrice() {
+	public Amount getWholesalerPrice() {
 		return wholesalerPrice;
 	}
 
-	public void setWholesalerPrice(double wholesalerPrice) {
+	public void setWholesalerPrice(Amount wholesalerPrice) {
 		this.wholesalerPrice = wholesalerPrice;
 	}
 
@@ -66,7 +67,7 @@ public class Product {
 	public int getStock() {
 		return stock;
 	}
-	
+
 	public void setStock(int stock) {
 		this.stock = stock;
 	}
@@ -80,13 +81,18 @@ public class Product {
 	}
 	
 	public void expire() {
-		this.publicPrice = this.getPublicPrice()*EXPIRATION_RATE;
+		this.publicPrice.setValue(this.getPublicPrice().getValue()*EXPIRATION_RATE); ;
 	}
-// Create toString [CORRECTION]
+
 	@Override
 	public String toString() {
-		return "Product [name=" + name + ", publicPrice=" + publicPrice + ", stock=" + stock + "]";
+		return "Product [name=" + name + ", publicPrice=" + publicPrice + ", wholesalerPrice=" + wholesalerPrice
+				+ ", available=" + available + ", stock=" + stock + "]";
 	}
+
+	
+	
+	
 	
 	
 
