@@ -11,6 +11,11 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -30,6 +35,11 @@ public class Shop {
 	}
 
 	public static void main(String[] args) {
+		if (!login()) {
+            System.out.println("Error de autenticación. Saliendo del programa.");
+            return;
+        }
+		
 		Shop shop = new Shop();
 
 		// load inventory from external data
@@ -40,6 +50,7 @@ public class Shop {
 			boolean exit = false;
 
 			do {
+				// INSERTAR MENÚ DE INICIAR SESIÓN EN LA BASE DE DATOS AQUÍ
 				System.out.println("\n");
 				System.out.println("===========================");
 				System.out.println("Menu principal miTienda.com");
@@ -102,8 +113,44 @@ public class Shop {
 
 			} while (!exit);
 		}
-
 	}
+	
+	private static boolean login() {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Ingrese el nombre de usuario: ");
+        String username = scanner.nextLine();
+
+        System.out.print("Ingrese la contraseña: ");
+        String password = scanner.nextLine();
+
+        try {
+            String url = "jdbc:mysql://localhost:3306/shop";
+            String dbUser = "root";
+            String dbPassword = "DAM1T_M03";
+
+            Connection connection = DriverManager.getConnection(url, dbUser, dbPassword);
+
+            String query = "SELECT * FROM users WHERE username = ? AND password = ?";
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setString(1, username);
+            preparedStatement.setString(2, password);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                System.out.println("Inicio de sesión exitoso.");
+                return true;
+            } else {
+                System.out.println("Usuario o contraseña incorrectos.");
+                return false;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+	
 
 	/**
 	 * load initial inventory to shop

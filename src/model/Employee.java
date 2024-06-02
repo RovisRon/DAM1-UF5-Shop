@@ -1,30 +1,37 @@
 package model;
 
 import main.Logable;
+import dao.Dao;
+import dao.DaoImplJDBC;
 
 public class Employee extends Person implements Logable{
 	
 	int employeeID;
-	final static int USER = 123;
-	final static String PASSWORD = "test";
+	int user;
+	String password;
+	private Dao dao = new DaoImplJDBC();
 	
-	public Employee(String name, int employeeID) {
+	public Employee(String name, int employeeID, String password) {
 		super(name);
 		this.employeeID = employeeID;
+		this.password = password;
 	}
+	
 	public int getUSER() {
-		return USER;
+		return user;
 	}
 	public String getPASSWORD() {
-		return PASSWORD;
+		return password;
 	}
+	
 	@Override
 	public boolean login(int user, String password) {
-        boolean isLogged = false;
-        if (user == USER && password.equals(PASSWORD)) {
-            isLogged = true;
-            System.out.println("Inici de sessió correcte");
-        }
-        return isLogged;
+		boolean success = false;
+    	dao.connect();
+    	if(dao.getEmployee(user,password) != null) {
+    		success = true;
+    	}
+    	dao.disconnect();
+    	return success;
     }
 }
