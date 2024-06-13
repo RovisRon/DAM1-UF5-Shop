@@ -118,7 +118,7 @@ public class LoginView extends JFrame implements ActionListener {
         try {
             String url = "jdbc:mysql://localhost:3306/shop";
             String dbUser = "root";
-            String dbPassword = "DAM1T_M03";
+            String dbPassword = "12345678";
 
             Connection connection = DriverManager.getConnection(url, dbUser, dbPassword);
 

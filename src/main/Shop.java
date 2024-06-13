@@ -3,6 +3,7 @@ package main;
 import model.Product;
 import model.Sale;
 import model.Amount;
+import model.Client;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -29,6 +30,10 @@ public class Shop {
 	private ArrayList<Sale> sales;
 	final static double TAX_RATE = 1.04;
 
+	private static final String DB_URL = "jdbc:mysql://localhost:3306/shop";
+    private static final String DB_USER = "root";
+    private static final String DB_PASSWORD = "12346578";
+    
 	public Shop() {
 		inventory = new ArrayList<Product>();
 		sales = new ArrayList<Sale>();
@@ -125,13 +130,14 @@ public class Shop {
         String password = scanner.nextLine();
 
         try {
-            String url = "jdbc:mysql://localhost:3306/shop";
+        	
+        	String url = "jdbc:mysql://localhost:3306/shop";
             String dbUser = "root";
-            String dbPassword = "DAM1T_M03";
+            String dbPassword = "12345678";
 
             Connection connection = DriverManager.getConnection(url, dbUser, dbPassword);
-
-            String query = "SELECT * FROM users WHERE username = ? AND password = ?";
+            
+            String query = "SELECT * FROM employee WHERE username = ? AND password = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             preparedStatement.setString(1, username);
             preparedStatement.setString(2, password);
@@ -342,62 +348,135 @@ public class Shop {
 		}
 	}
 
+	
+	public Client getClientFromDB(String clientName) throws SQLException {
+	    Client client = null;
+	    Connection connection = null;
+	    PreparedStatement preparedStatement = null;
+	    ResultSet resultSet = null;
+
+	    try {
+	    	
+	    	String url = "jdbc:mysql://localhost:3306/shop";
+            String dbUser = "root";
+            String dbPassword = "12345678";
+
+            connection = DriverManager.getConnection(url, dbUser, dbPassword);
+	        String query = "SELECT * FROM client WHERE username = ?";
+	        preparedStatement = connection.prepareStatement(query);
+	        preparedStatement.setString(1, clientName);
+	        resultSet = preparedStatement.executeQuery();
+
+	        if (resultSet.next()) {
+	            int memberID = resultSet.getInt("memberID");
+	            double balance = resultSet.getDouble("balance");
+	            Amount amount = new Amount(balance);
+	            client = new Client(clientName, memberID, amount);
+	        } else {
+	            System.out.println("Client not found.");
+	        }
+	    } finally {
+	        if (resultSet != null) {
+	            resultSet.close();
+	        }
+	        if (preparedStatement != null) {
+	            preparedStatement.close();
+	        }
+	        if (connection != null) {
+	            connection.close();
+	        }
+	    }
+
+	    return client;
+	}
+
+	
 	/**
 	 * make a sale of products to a client
 	 */
 	public void sale() {
-		try (// ask for client name
-		Scanner scanner = new Scanner(System.in)) {
-			System.out.println("Realizar venta, escannerribir nombre cliente");
-			String client = scanner.nextLine();
+	    try (Scanner scanner = new Scanner(System.in)) {
+	        System.out.println("Realizar venta, escribir nombre cliente:");
+	        String clientName = scanner.nextLine();
+	        
+	        Client client = getClientFromDB(clientName);
+	        if (client == null) {
+	            System.out.println("Cliente no encontrado. Cancelando venta.");
+	            return;
+	        }
 
-			// sale product until input name is not 0
-			// Product[] shoppingCart = new Product[10];
-			ArrayList<Product> shoppingCart = new ArrayList<Product>();
-			Amount totalAmount = new Amount(0.0);
-			String name = "";
-			while (!name.equals("0")) {
-				System.out.println("Introduce el nombre del producto, escannerribir 0 para terminar:");
-				name = scanner.nextLine();
+	        ArrayList<Product> shoppingCart = new ArrayList<>();
+	        Amount totalAmount = new Amount(0.0);
+	        String name = "";
 
-				if (name.equals("0")) {
-					break;
-				}
-				Product product = findProduct(name);
-				boolean productAvailable = false;
+	        while (!name.equals("0")) {
+	            System.out.println("Introduce el nombre del producto, escribir 0 para terminar:");
+	            name = scanner.nextLine();
 
-				if (product != null && product.isAvailable()) {
-					productAvailable = true;
-					totalAmount.setValue(totalAmount.getValue() + product.getPublicPrice().getValue());
-					product.setStock(product.getStock() - 1);
-					shoppingCart.add(product);
-					// if no more stock, set as not available to sale
-					if (product.getStock() == 0) {
-						product.setAvailable(false);
-					}
-					System.out.println("Producto añadido con éxito");
-				}
+	            if (name.equals("0")) {
+	                break;
+	            }
+	            Product product = findProduct(name);
+	            boolean productAvailable = false;
 
-				if (!productAvailable) {
-					System.out.println("Producto no encontrado o sin stock");
-				}
-			}
+	            if (product != null && product.isAvailable()) {
+	                productAvailable = true;
+	                totalAmount.setValue(totalAmount.getValue() + product.getPublicPrice().getValue());
+	                product.setStock(product.getStock() - 1);
+	                shoppingCart.add(product);
+	                if (product.getStock() == 0) {
+	                    product.setAvailable(false);
+	                }
+	                System.out.println("Producto añadido con éxito");
+	            }
 
-			totalAmount.setValue(totalAmount.getValue() * TAX_RATE);
-			// show cost total
-			System.out.println("Venta realizada con éxito, total: " + totalAmount);
+	            if (!productAvailable) {
+	                System.out.println("Producto no encontrado o sin stock");
+	            }
+	        }
 
-			// create sale
-			Sale sale = new Sale(client, shoppingCart, totalAmount);
+	        totalAmount.setValue(totalAmount.getValue() * TAX_RATE);
+	        
+	        // Actualizar saldo del cliente y registrar la venta
+	        updateClientBalance(client, totalAmount);
+	        System.out.println("Venta realizada con éxito, total: " + totalAmount);
 
-			// add to shop
-			sales.add(sale);
-//		numberSales++;
-
-			// add to cash
-			cash.setValue(cash.getValue() + totalAmount.getValue());
-		}
+	        Sale sale = new Sale(client.getName(), shoppingCart, totalAmount);
+	        sales.add(sale);
+	        cash.setValue(cash.getValue() + totalAmount.getValue());
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
 	}
+
+
+	private void updateClientBalance(Client client, Amount amount) throws SQLException {
+	    Connection connection = null;
+	    PreparedStatement preparedStatement = null;
+
+	    try {
+	    	String url = "jdbc:mysql://localhost:3306/shop";
+            String dbUser = "root";
+            String dbPassword = "12345678";
+
+            connection = DriverManager.getConnection(url, dbUser, dbPassword);
+	        String query = "UPDATE client SET balance = ? WHERE memberID = ?";
+	        preparedStatement = connection.prepareStatement(query);
+	        double newBalance = client.getBalance().getValue() - amount.getValue();
+	        preparedStatement.setDouble(1, newBalance);
+	        preparedStatement.setInt(2, client.getMemberID());
+	        preparedStatement.executeUpdate();
+	        client.setBalance(new Amount(newBalance));
+	    } finally {
+	        if (preparedStatement != null) {
+	            preparedStatement.close();
+	        }
+	        if (connection != null) {
+	            connection.close();
+	        }
+	    }
+	}
+
 
 	/**
 	 * show all sales

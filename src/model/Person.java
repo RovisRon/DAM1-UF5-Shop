@@ -8,7 +8,7 @@ public abstract class Person {
         this.name = name;
     }
 
-	protected String getName() {
+	public String getName() {
 		return name;
 	}
 
